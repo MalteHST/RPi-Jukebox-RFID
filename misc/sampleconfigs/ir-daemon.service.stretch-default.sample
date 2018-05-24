@@ -1,0 +1,12 @@
+[Unit]
+Description=Infrared Red Controler
+After=default.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/RPi-Jukebox-RFID
+ExecStart=/home/pi/RPi-Jukebox-RFID/scripts/ir_daemon.py
+
+[Install]
+WantedBy=default.target
