@@ -34,19 +34,19 @@ CMDVOL85="%CMDVOL85%"
 CMDVOL90="%CMDVOL90%"
 CMDVOL95="%CMDVOL95%"
 CMDVOL100="%CMDVOL100%"
-CMDVOLUP="plus"
-CMDVOLDOWN="minus"
+CMDVOLUP="%CMDVOLUP%"
+CMDVOLDOWN="%CMDVOLDOWN%"
 CMDSTOP="%CMDSTOP%"
-CMDSHUTDOWN="menu"
+CMDSHUTDOWN="%CMDSHUTDOWN%"
 CMDREBOOT="%CMDREBOOT%"
 # The following commands control VLC playout
 # next and prev play the preivous or next track in the playlist (== folder)
-CMDNEXT="forward"
-CMDPREV="rewind"
+CMDNEXT="%CMDNEXT%"
+CMDPREV="%CMDPREV%"
 # pause VLC playout
-CMDPAUSE="play"
+CMDPAUSE="%CMDPAUSE%"
 # resume VLC playout (makes only sense in combination with pause)
-CMDPLAY="play"
+CMDPLAY="%CMDPLAY%"
 
 # The absolute path to the folder whjch contains all the scripts.
 # Unless you are working with symlinks, leave the following line untouched.
@@ -68,6 +68,9 @@ case $i in
 esac
 done
 
+# If you want to see the CARDID printed, uncomment the following line
+echo CARDID = $CARDID
+
 # Set the date and time of now
 NOW=`date +%Y-%m-%d.%H:%M:%S`
 
@@ -86,99 +89,99 @@ if [ "$CARDID" ]; then
     then
         # amixer sset 'PCM' 0%
         $PATHDATA/playout_controls.sh -c=mute
-        
+
     elif [ "$CARDID" == "$CMDVOL30" ]
     then
         # amixer sset 'PCM' 30%
         $PATHDATA/playout_controls.sh -c=setvolume -v=30
-    
+
     elif [ "$CARDID" == "$CMDVOL50" ]
     then
         # amixer sset 'PCM' 50%
         $PATHDATA/playout_controls.sh -c=setvolume -v=50
-    
+
     elif [ "$CARDID" == "$CMDVOL75" ]
     then
         # amixer sset 'PCM' 75%
         $PATHDATA/playout_controls.sh -c=setvolume -v=75
-    
+
     elif [ "$CARDID" == "$CMDVOL85" ]
     then
         # amixer sset 'PCM' 85%
         $PATHDATA/playout_controls.sh -c=setvolume -v=85
-    
+
     elif [ "$CARDID" == "$CMDVOL90" ]
     then
         # amixer sset 'PCM' 90%
         $PATHDATA/playout_controls.sh -c=setvolume -v=90
-    
+
     elif [ "$CARDID" == "$CMDVOL95" ]
     then
         # amixer sset 'PCM' 95%
         $PATHDATA/playout_controls.sh -c=setvolume -v=95
-    
+
     elif [ "$CARDID" == "$CMDVOL100" ]
     then
         # amixer sset 'PCM' 100%
         $PATHDATA/playout_controls.sh -c=setvolume -v=100
-    
+
     elif [ "$CARDID" == "$CMDVOLUP" ]
     then
         # amixer sset 'PCM' 500+
-        $PATHDATA/playout_controls.sh -c=volumeup   
-    
+        $PATHDATA/playout_controls.sh -c=volumeup
+
     elif [ "$CARDID" == "$CMDVOLDOWN" ]
     then
         # amixer sset 'PCM' 500-
         $PATHDATA/playout_controls.sh -c=volumedown
-    
+
     elif [ "$CARDID" == "$CMDSTOP" ]
     then
         # kill all running VLC media players
         # sudo pkill vlc
         $PATHDATA/playout_controls.sh -c=playerstop
-    
+
     elif [ "$CARDID" == "$CMDSHUTDOWN" ]
     then
         # shutdown the RPi nicely
         # sudo halt
         $PATHDATA/playout_controls.sh -c=shutdown
-        
+
     elif [ "$CARDID" == "$CMDREBOOT" ]
     then
         # shutdown the RPi nicely
         # sudo reboot
         $PATHDATA/playout_controls.sh -c=reboot
-        
+
     elif [ "$CARDID" == "$CMDNEXT" ]
     then
         # play next track in playlist (==folder)
         # echo "next" | nc.openbsd -w 1 localhost 4212
         $PATHDATA/playout_controls.sh -c=playernext
-        
+
     elif [ "$CARDID" == "$CMDPREV" ]
     then
         # play previous track in playlist (==folder)
         # echo "prev" | nc.openbsd -w 1 localhost 4212
         $PATHDATA/playout_controls.sh -c=playerprev
-        
+
     elif [ "$CARDID" == "$CMDPAUSE" ]
     then
         # pause current track
         # echo "pause" | nc.openbsd -w 1 localhost 4212
         $PATHDATA/playout_controls.sh -c=playerpause
-        
+
     elif [ "$CARDID" == "$CMDPLAY" ]
     then
         # play / resume current track
         # echo "play" | nc.openbsd -w 1 localhost 4212
         $PATHDATA/playout_controls.sh -c=playerplay
-        
+
     else
         # We checked if the card was a special command, seems it wasn't.
         # Now we expect it to be a trigger for one or more audio file(s).
         # Let's look at the ID, write a bit of log information and then try to play audio.
-    
+
         # Expected folder structure:
         #
         # $PATHDATA + /../shared/audiofolders/ + $FOLDERNAME
@@ -196,10 +199,10 @@ if [ "$CARDID" ]; then
         #                                         /x-alphabetically.mp3
         #
         # $PATHDATA/../shared/audiofolders/webradio/filewithURL.txt
-    
+
         # Add info into the log, making it easer to monitor cards
         echo "Card ID '$CARDID' was used at '$NOW'." > $PATHDATA/../shared/latestID.txt
-    
+
     	# Look for human readable shortcut in folder 'shortcuts'
     	# check if CARDID has a text file by the same name - which would contain the human readable folder name
     	if [ -f $PATHDATA/../shared/shortcuts/$CARDID ]
@@ -218,7 +221,7 @@ if [ "$CARDID" ]; then
         fi
         # Add info into the log, making it easer to monitor cards
         echo "The shortcut points to audiofolder '$FOLDERNAME'." >> $PATHDATA/../shared/latestID.txt
-    
+
     fi
 fi
 
@@ -228,36 +231,40 @@ fi
 # Either from prompt of from the card ID processing above
 # Sloppy error check, because we assume the best.
 if [ "$FOLDERNAME" ]; then
-    
+
     # if a folder $FOLDERNAME exists, play content
     if [ -d "$PATHDATA/../shared/audiofolders/$FOLDERNAME" ]
     then
-        # Check if we have something special to do
+        # set path to playlist
+        PLAYLISTPATH="/tmp/$FOLDERNAME.m3u"
 
-        # Podcast?
+        # Check if we have something special to do
         # Read content file names of folder into string
-        SPECIALFORMAT=$(ls $PATHDATA/../shared/audiofolders/$FOLDERNAME | grep podcast.txt)
-        if [ "$SPECIALFORMAT" == "podcast.txt" ]; then
-            # Podcast!
-            # ... to be done ...
-            echo $SPECIALFORMAT
-        else
-            # Nothing special to do, folder with audio files
-            # write playlist to file using the same name as the folder with ending .m3u
-            # wrap $PLAYLIST string in "" to keep line breaks
-            find "$PATHDATA/../shared/audiofolders/$FOLDERNAME" -type f | sort -n > "/tmp/$FOLDERNAME.m3u"
-            VLCPLAYS="/tmp/$FOLDERNAME.m3u"
-        fi
+        SPECIALFORMAT=$(ls "$PATHDATA/../shared/audiofolders/$FOLDERNAME" | grep .txt)
+        # the following switch can be extended with other 'special' formats which require
+        # more complex action than just piping the folder content into a playlist
+        case $SPECIALFORMAT in
+            "podcast.txt")
+                # Podcast
+                PODCASTURL=`cat "$PATHDATA/../shared/audiofolders/$FOLDERNAME/podcast.txt"`
+                # parse podcast XML in sloppy but efficient way and write URLs to playlist
+                wget -q -O - "$PODCASTURL" | sed -n 's/.*enclosure.*url="\([^"]*\)" .*/\1/p' > "$PLAYLISTPATH"
+                # uncomment the following line to see playlist content in terminal
+                # cat "$PLAYLISTPATH"
+                ;;
+            *)
+                # Nothing special to do, folder with audio files
+                # write playlist to file using the same name as the folder with ending .m3u
+                # wrap $PLAYLIST string in "" to keep line breaks
+                find "$PATHDATA/../shared/audiofolders/$FOLDERNAME" -type f | sort -n > "$PLAYLISTPATH"
+                ;;
+        esac
+
         # first kill any possible running vlc process => stop playing audio
         sudo pkill vlc
-    
+
         # now start the command line version of vlc loading the playlist
         # start as a background process (command &) - otherwise the input only works once the playlist finished
-        cvlc --no-video --network-caching=10000 -I rc --rc-host localhost:4212 "$VLCPLAYS" &
-        
-        # NOTE TO SELF: can we get rid off writing a playlist if we play the folder as we do in the index.php?
-        # Currently problem with whitespaces in folder name.
-        # Also, keep in mind the use of stream URLs or YouTube in text files
-        # cvlc --no-video -I rc --rc-host localhost:4212 "$PATHDATA/../shared/audiofolders/$FOLDERNAME" > /dev/null 2>/dev/null &
+        cvlc --no-video --network-caching=10000 -I rc --rc-host localhost:4212 "$PLAYLISTPATH" &
     fi
 fi

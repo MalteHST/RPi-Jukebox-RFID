@@ -1,13 +1,17 @@
+#!/usr/bin/env python2
 import subprocess
-import os 
+import os
+import signal
+import RPi.GPIO as GPIO
+
 from Reader import Reader
 
 reader = Reader()
+continue_reading = True
 
 # get absolute path of this script
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-print dir_path
 
 # Capture SIGINT for cleanup when the script is aborted
 def end_read(signal, frame):
