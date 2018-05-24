@@ -292,5 +292,4 @@ shared/audiofolders/*
 shared/shortcuts/*
 shared/latestID.txt
 playlists/*
-htdocs/config.php
 .python-version
