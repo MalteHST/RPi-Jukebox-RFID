@@ -1,10 +1,27 @@
-# Installing the RFID Jukebox on your RPi
+# Installing Phoniebox on RPi Jessie
 
-The installation is the first step to get your jukebox up and running. Once you have done this, proceed to the [configuration](CONFIGURE.md).
+*Written for an tested on Raspbian GNU/Linux (jessie)*
+
+## Update information
+
+**Updates from version < 0.9.3**
+
+If you are updating your code from a version smaller 0.9.3 you need to manually make a copy of the file `scripts/playout_controls.sh.sample` to `scripts/playout_controls.sh`. Please run the following lines:
+~~~
+cp /home/pi/RPi-Jukebox-RFID/scripts/playout_controls.sh.sample /home/pi/RPi-Jukebox-RFID/scripts/playout_controls.sh
+sudo chown pi:pi /home/pi/RPi-Jukebox-RFID/scripts/playout_controls.sh
+sudo chmod 775 /home/pi/RPi-Jukebox-RFID/scripts/playout_controls.sh
+~~~
+
+---
+
+The installation is the first step to get your jukebox up and running. Once you have done this, proceed to the [configuration](CONFIGURE-jessie.md).
 
 And Once you finished with the configuration, read the [manual](MANUAL.md) to add audio files and RFID cards.
 
-This project has been tested on Raspberry Pi model 1 and 2. And there is no reason why it shouldn't work on the third generation.
+This project has been tested on Raspberry Pi model 1, 2, 3 HiFiBerry and Zero.
+
+**Quick install script:** after you installed Raspbian and are online with your RPi, you might want to proceed to the [install script for Jessie](https://github.com/MiczFlor/RPi-Jukebox-RFID/blob/master/scripts/installscripts/jessie-install-default-01.sh). Having said this, if you are new to your Raspberry, you will learn more going through this step by step.
 
 ## Install Raspbian on your RPi
 
@@ -25,6 +42,15 @@ Before you boot your RPi for the first time, make sure that you have all the ext
 3. A keyboard and mouse over USB.
 
 After the boot process has finished, you can select the operating system we want to work with: *Raspbian*. Select the checkbox and then hit **Install** above the selection.
+
+### Installing on Ubuntu Mate for Raspberry Pi
+
+Here are some pointers to get the software running on Ubuntu Mate for Raspberry Pi instead of Raspbian. 
+
+* PHP has to be installed with `sudo apt install php php-cgi` instead of the command given in the docs. This will install PHP7, which seems to work flawlessly.
+* As on Mate the username is set during the install, it's usually differet from the common pi user on Raspbian. I hence had to change $conf['base_path'] in `./htdocs/config.php` to match the home folder.
+* To get auto login for the new Mate user working does not work over raspi-config as recommended in the docs. As a workaround, autostart the demon via `/etc/crontab` instead, which works (almost) the same way.
+* Last but not least, run the demon with sudo to have sound. 
 
 ## Configure your RPi
 
@@ -120,6 +146,22 @@ static domain_name_servers=192.168.178.1
 ~~~~
 Save the changes with `Ctrl & O` then `Enter` then `Ctrl & X`.
 
+## Install git (to pull the code from github)
+
+[*git* is a version control system](https://git-scm.com/) which makes it easy to pull software from GitHub - which is where the jukebox software is located.
+
+~~~~
+$ sudo apt-get update
+$ sudo apt-get install git
+~~~~
+
+## Install the jukebox code
+
+~~~~
+$ cd /home/pi/
+$ git clone https://github.com/MiczFlor/RPi-Jukebox-RFID.git
+~~~~
+
 ## Install samba to share folders over your home network
 
 To make the jukebox easy to administer, it is important that you can add new songs and register new RFID cards over your home network. This can be done from any machine. The way to integrate your RPi into your home network is using *Samba*, the standard [Windows interoperability suite for Linux and Unix](https://www.samba.org/).
@@ -127,7 +169,7 @@ To make the jukebox easy to administer, it is important that you can add new son
 Open a terminal and install the required packages with this line:
 
 ~~~~
-$ sudo apt-get install samba samba-common-bin 
+$ sudo apt-get install apt-transport-https samba samba-common-bin 
 ~~~~
 
 First, let's edit the *Samba* configuration file and define the workgroup the RPi should be part of.
@@ -200,7 +242,7 @@ $ sudo apt-get install linux-headers-4.4
 Now the system is ready to load the important package for the python code we use: *evdev*. 
 
 ~~~~
-$ sudo pip install evdev
+$ sudo pip install "evdev == 0.7.0"
 ~~~~
 
 ## Running the web app
@@ -208,6 +250,8 @@ $ sudo pip install evdev
 There is a second way to control the RFID jukebox: through the browser. You can open a browser on your phone or computer and type in the static IP address that we assigned to the RPi earlier. As long as your phone or PC are connected to the same WiFi network that the RPi is connected to, you will see the web app in your browser.
 
 ### Installing lighttpd and PHP
+
+This installation routine was written for RPi Jessie which comes with PHP version 5.
 
 ~~~~
 $ sudo apt-get install lighttpd php5-common php5-cgi php5
@@ -226,13 +270,14 @@ Change the document root, meaning the folder where the webserver will look for t
 ~~~~
 server.document-root = "/home/pi/RPi-Jukebox-RFID/htdocs"
 ~~~~
+Save the changes with `Ctrl & O` then `Enter` then `Ctrl & X`.
 
 The webserver is usually not very powerful when it comes to access to the system it is running on. From a security point of view, this is a very good concept: you don't want a website to potentially change parts of the operating system which should be locked away from any public access.
 
 We do need to give the webserver more access in order to run a web app that can start and stop processes on the RPi. To make this happen, we need to add the webserver to the list of users/groups allowed to run commands as superuser. To do so, open the list of sudo users in the nano editor:
 
 ~~~~
-$ sudo nano /etc/sudoers
+sudo nano /etc/sudoers
 ~~~~
 
 And at the bottom of the file, add the following line:
@@ -244,18 +289,32 @@ www-data ALL=(ALL) NOPASSWD: ALL
 The final step to make the RPi web app ready is to tell the webserver how to execute PHP. To enable the lighttpd server to execute php scripts, the fastcgi-php module must be enabled.
 
 ~~~~
-$ sudo lighty-enable-mod fastcgi-php
+sudo lighty-enable-mod fastcgi-php
 ~~~~
 
 Now we can reload the webserver with the command:
 
 ~~~~
-$ sudo service lighttpd force-reload
+sudo service lighttpd force-reload
 ~~~~
-One last touch: make sure the shared folder is accessible by the web server:
+
+### Make a copy of the web app config file
+
+There is a sample config file in the `htdocs` folder which you need to copy to `config.php`.
+This assures that you can make changes to `config.php` which will not be affected by updates
+in the upstream repository.
+
+~~~~
+sudo cp /home/pi/RPi-Jukebox-RFID/htdocs/config.php.sample /home/pi/RPi-Jukebox-RFID/htdocs/config.php
+~~~~
+
+Make sure the `shared` and `htdocs` folders are accessible by the web server:
+
 ~~~~
 sudo chown -R pi:www-data /home/pi/RPi-Jukebox-RFID/shared
 sudo chmod -R 775 /home/pi/RPi-Jukebox-RFID/shared
+sudo chown -R pi:www-data /home/pi/RPi-Jukebox-RFID/htdocs
+sudo chmod -R 775 /home/pi/RPi-Jukebox-RFID/htdocs
 ~~~~
 
 Next on the list is the media player which will play the audio files and playlists: VLC. In the coming section you will also learn more about why we gave the webserver more power over the system by adding it to the list of `sudo` users.
@@ -282,27 +341,11 @@ $ sudo sed -i 's/geteuid/getppid/' /usr/bin/vlc
 
 ## Install mpg123
 
-While we are using *VLC* for all the media to be played on the jukebox, we are using the command line player *mpg123* for the boot sound. More about the boot sound in the file [`CONFIGURE.md`](CONFIGURE.md). To install this tiny but reliable player, type:
+While we are using *VLC* for all the media to be played on the jukebox, we are using the command line player *mpg123* for the boot sound. More about the boot sound in the file [`CONFIGURE-jessie.md`](CONFIGURE-jessie.md). To install this tiny but reliable player, type:
 
 ```
 $ sudo apt-get install mpg123
 ```
-
-## Install git
-
-[*git* is a version control system](https://git-scm.com/) which makes it easy to pull software from GitHub - which is where the jukebox software is located.
-
-~~~~
-$ sudo apt-get update
-$ sudo apt-get install git
-~~~~
-
-## Install the jukebox code
-
-~~~~
-$ cd /home/pi/
-$ git clone https://github.com/MiczFlor/RPi-Jukebox-RFID.git
-~~~~
 
 ## Using a USB soundcard
 
@@ -320,4 +363,4 @@ sudo reboot
 
 # Configure the jukebox
 
-Continue with the configuration in the file [`CONFIGURE.md`](CONFIGURE.md).
+Continue with the configuration in the file [`CONFIGURE-jessie.md`](CONFIGURE-jessie.md).

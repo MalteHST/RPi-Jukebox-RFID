@@ -51,6 +51,19 @@ function html_bootstrap3_createHeader($lang="en",$title="Welcome",$url_absolute=
         <meta name=\"msapplication-TileImage\" content=\"".$url_absolute."_assets/icons/ms-icon-144x144.png\">
         <meta name=\"theme-color\" content=\"#ffffff\">
 
+        <style type='text/css'>
+        .playerControls {
+            margin-bottom: 1em;
+        }
+        .controlPlayer {
+            margin-right: 1em;
+        }
+        .btnFolder, .folderContent {
+            max-width: 100%;
+            overflow: hidden;
+        }
+        </style>
+        
     </head>\n";
 }
 

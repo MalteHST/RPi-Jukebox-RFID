@@ -1,6 +1,8 @@
-# Configure your RPi and jukebox
+# Configure your Phoniebox on RPi Jessie
 
-This is the second step. Make sure to go through the [installation](INSTALL.md) first.
+*Written for an tested on Raspbian GNU/Linux (jessie)*
+
+This is the second step. Make sure to go through the [installation](INSTALL-jessie.md) first.
 
 Once you finished with the configuration, read the [manual](MANUAL.md) to add audio files and RFID cards.
 
@@ -82,48 +84,66 @@ Barcode Reader
 
 Now your jukebox knows which device to listen to when you are swiping your cards or keyrings.
 
-## Auto-start the jukebox
+## Copy the media player and daemon script
 
-This is the final tweak to the configuration: automatically start our jukebox software after the RPi has booted and have it listen to RFID cards.
-
-To start the jukebox daemon, we are taking advantage of another daemon which is installed on most Unix systems: *Cron*. We are using cron in a very basic way by telling it: "every time the computer has booted up, run the following script". 
-
-In cron language, this translates to:
+Inside the directory `/home/pi/RPi-Jukebox-RFID/scripts/` you find the files `rfid_trigger_play.sh.sample` and `playout_controls.sh.sample`. You need to make a copy of these files, because you might edit these files at a later stage.
 
 ~~~~
-@reboot python2 /home/pi/RPi-Jukebox-RFID/scripts/daemon_rfid_reader.py &
+cd /home/pi/RPi-Jukebox-RFID/scripts/
+cp rfid_trigger_play.sh.sample rfid_trigger_play.sh
+cp playout_controls.sh.sample playout_controls.sh
+chmod +x rfid_trigger_play.sh
+chmod +x playout_controls.sh
 ~~~~
 
-Add this line to your *crontab*, a table of scheduled jobs. To edit this cron table for the user pi on your RPi, type:
+## <a name="systemdautostart"></a>Auto-start the jukebox
 
-~~~~
-$ crontab -e
-~~~~
+This is the final tweak to the configuration: automatically start our jukebox software after the RPi has booted and have it listen to RFID cards. The Raspbian OS Jessie uses systemd to start the components.
 
-The first time you fire up this command, the system will ask you which editor to use.
+**Systemd will launch the required services after booting AND take care of restarting the script in case they die**. 
 
-Once you started `crontab`, add the two lines at the bottom of the document:
+First copy the service config files to the correct directory:
 
 ```
-@reboot mpg123 /home/pi/RPi-Jukebox-RFID/misc/startupsound.mp3
-@reboot python2 /home/pi/RPi-Jukebox-RFID/scripts/daemon_rfid_reader.py &
+sudo cp /home/pi/RPi-Jukebox-RFID/misc/sampleconfigs/rfid-reader.service.stretch-default.sample /etc/systemd/system/rfid-reader.service 
+sudo cp /home/pi/RPi-Jukebox-RFID/misc/sampleconfigs/startup-sound.service.stretch-default.sample /etc/systemd/system/startup-sound.service
+sudo cp /home/pi/RPi-Jukebox-RFID/misc/sampleconfigs/gpio-buttons.service.stretch-default.sample /etc/systemd/system/gpio-buttons.service
 ```
 
-**Note:** The first line plays a startup sound, using the command line player mpg123. The sound used here is being shipped with Ubuntu and can be found at `/usr/share/sounds/ubuntu/notifications/Mallet.ogg`.
+Now systemd has to be notified that there are new service files:
 
-Save and close the file by typing `Ctrl & X` then `y` then hit the `Enter` key.
+```
+sudo systemctl daemon-reload
+```
 
-Now, when you reboot, the jukebox will automatically start and wait for input in the background.
+The last step is to enable the service files:
 
-## Copy the media player script
+```
+sudo systemctl enable rfid-reader
+sudo systemctl enable startup-sound
+sudo systemctl enable gpio-buttons (optional)
+```
 
-Inside the directory `/home/pi/RPi-Jukebox-RFID/scripts/` you find the file `rfid_trigger_play.sh.sample`. You need to make a copy of this file, because you might edit this file at a later stage.
+The newly installed service can be started either by rebooting the jukebox or
+with:
+```sudo systemctl start rfid-reader```
 
-~~~~
-$ cd /home/pi/RPi-Jukebox-RFID/scripts/
-$ cp rfid_trigger_play.sh.sample rfid_trigger_play.sh
-$ chmod +x rfid_trigger_play.sh
-~~~~
+To see if the reader process is running use the following command:
+```
+sudo systemctl status rfid-reader
+```
+This should produce an output like this:
+```
+pi@Jukebox:~ $ systemctl status rfid-reader
+ * rfid-reader.service - RFID-Reader Service
+   Loaded: loaded (/etc/systemd/system/rfid-reader.service; enabled; vendor pres
+   Active: active (running) since Fri 2018-04-13 07:34:53 UTC; 5h 47min ago
+ Main PID: 393 (python2)
+   CGroup: /system.slice/rfid-reader.service
+           └─393 /usr/bin/python2 /home/pi/RPi-Jukebox-RFID/scripts/daemon_rfid_
+
+Apr 13 07:34:53 Jukebox systemd[1]: Started RFID-Reader Service.
+```
 
 # Connecting the hardware
 
