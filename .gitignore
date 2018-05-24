@@ -1,0 +1,7 @@
+shared/audiofolders/*
+shared/shortcuts/*
+shared/latestID.txt
+playlists/*
+*.pyc
+htdocs/config.php
+.python-version
