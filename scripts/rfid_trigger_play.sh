@@ -34,19 +34,19 @@ CMDVOL85="%CMDVOL85%"
 CMDVOL90="%CMDVOL90%"
 CMDVOL95="%CMDVOL95%"
 CMDVOL100="%CMDVOL100%"
-CMDVOLUP="%CMDVOLUP%"
-CMDVOLDOWN="%CMDVOLDOWN%"
+CMDVOLUP="plus"
+CMDVOLDOWN="minus"
 CMDSTOP="%CMDSTOP%"
-CMDSHUTDOWN="%CMDSHUTDOWN%"
+CMDSHUTDOWN="menu"
 CMDREBOOT="%CMDREBOOT%"
 # The following commands control VLC playout
 # next and prev play the preivous or next track in the playlist (== folder)
-CMDNEXT="%CMDNEXT%"
-CMDPREV="%CMDPREV%"
+CMDNEXT="forward"
+CMDPREV="rewind"
 # pause VLC playout
-CMDPAUSE="%CMDPAUSE%"
+CMDPAUSE="play"
 # resume VLC playout (makes only sense in combination with pause)
-CMDPLAY="%CMDPLAY%"
+CMDPLAY="play"
 
 # The absolute path to the folder whjch contains all the scripts.
 # Unless you are working with symlinks, leave the following line untouched.
@@ -265,6 +265,6 @@ if [ "$FOLDERNAME" ]; then
 
         # now start the command line version of vlc loading the playlist
         # start as a background process (command &) - otherwise the input only works once the playlist finished
-        cvlc --no-video --network-caching=10000 -I rc --rc-host localhost:4212 "$PLAYLISTPATH" &
+        cvlc --no-video --network-caching=10000 -I rc --rc-host 0.0.0.0:4212 "$PLAYLISTPATH" &
     fi
 fi

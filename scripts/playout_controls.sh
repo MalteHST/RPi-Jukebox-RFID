@@ -67,11 +67,11 @@ then
 
 elif [ $COMMAND == "volumeup" ]
 then
-    amixer sset \'$DEVICE\' 20+
+    amixer sset \'$DEVICE\' 40+
 
 elif [ $COMMAND == "volumedown" ]
 then
-    amixer sset \'$DEVICE\' 20-
+    amixer sset \'$DEVICE\' 40-
 
 elif [ $COMMAND == "playerstop" ]
 then
