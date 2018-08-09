@@ -27,13 +27,21 @@ print "Press Ctrl-C to stop."
 # Hook the SIGINT
 signal.signal(signal.SIGINT, end_read)
 
+playing = False
 while continue_reading:
     # reading the card id
     cardid = reader.read_card()
-    if cardid is not None:
-        subprocess.call(['aplay ' + dir_path + '/../misc/robot_blip.wav'], shell=True)
+    if cardid is None and playing:
+        try:
+            subprocess.call([dir_path + '/playout_controls.sh -c=playerstop'], shell=True)
+            playing = False
+        except OSError as e:
+            print "Execution of stop failed:" + str(e)
+    elif cardid is not None and not playing:
         try:
             # start the player script and pass on the card id
             subprocess.call([dir_path + '/rfid_trigger_play.sh --cardid=' + cardid], shell=True)
+            playing = True
         except OSError as e:
-            print "Execution failed:" + str(e)
+            print "Execution of play failed:" + str(e)
+#

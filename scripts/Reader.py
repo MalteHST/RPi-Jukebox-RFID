@@ -8,11 +8,13 @@ class Reader:
 
     def read_card(self):
         # Scan for cards
-        status, tag_type = self.reader.MFRC522_Request(self.reader.PICC_REQIDL)
+        for i in range(2):
+            status, tag_type = self.reader.MFRC522_Request(self.reader.PICC_REQIDL)
 
-        # If a card is found
-        if status == self.reader.MI_OK:
-            print "Card detected"
+            # If a card is found
+            if status == self.reader.MI_OK:
+                print "Card detected"
+                break
 
         # Get the UID of the card
         (status, uid) = self.reader.MFRC522_Anticoll()
